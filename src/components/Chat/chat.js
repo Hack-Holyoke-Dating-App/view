@@ -85,7 +85,7 @@ export default Vue.extend({
                 if (message.sending_user_id != user_me._id){
                     const user_you = this.$data.users[this.$data.currentUserIdx];
                     const wrappedMsg = {
-                        name: message.sending_user_id == user_you._id ? user_you.name : "You",
+                        name: user_you.name,
                         text: message.text,
                         time: message.time
                     }

@@ -3,6 +3,10 @@
         <h1>Hello, <span style="font-weight:bold;">{{ me.name }}</span>, You're chatting with
              <span style="font-weight:bold;">{{ currentConvoId == null ? "No-one :( please select a user" : getCurrentUser.name }}</span></h1>
         <hr>
+              <div class="alert alert-warning alert-dismissible" role="alert">
+                <span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span>
+                <strong>Warning!</strong> Still on beta stage.
+              </div>
             <div class="row">
             <div class="col-sm-2">
                 <ul id="example-1" class="list-group"> 
