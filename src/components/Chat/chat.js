@@ -34,11 +34,9 @@ export default Vue.extend({
     };
   },
   mounted: function(){
-    console.log("hello world");
     var userStr = localStorage.getItem("user");
     this.$data.me = JSON.parse(userStr);
     const matchURL = API_BASE + "/api/users/" + this.$data.me._id + "/matches";
-    console.log(matchURL);
     axios.get(matchURL).then(resp => {
         console.log("MATCHES");
         if (resp){
@@ -58,7 +56,6 @@ export default Vue.extend({
   },
   watch: {
     currentConvoId: function(convo_id){
-        alert(convo_id)
         const self = this;
         if (convo_id){
 
@@ -67,9 +64,8 @@ export default Vue.extend({
             this.$options.sockets[topic] = (data) => {
                 const message = data.message;
                 const user_you = this.$data.users[this.$data.currentUserIdx];
-                
                 const wrappedMsg = {
-                    name: message.sender_user_id == user_you._id ? user_you.name : "You",
+                    name: message.sending_user_id == user_you._id ? user_you.name : "You",
                     text: message.text,
                     time: message.time
                 }
@@ -83,7 +79,7 @@ export default Vue.extend({
             console.log("insight: " + insight_topic);
             this.$options.sockets[insight_topic] = (data) => {
                 console.log(data);
-                this.$data.sentiment = data.insight.data;
+                this.$data.sentiment = data.data;
             }
         }  
     }
@@ -139,13 +135,8 @@ export default Vue.extend({
         var user_you_found = false;
         for(var i in convos){
           const convo = convos[i];
-          console.log("?????");
-          console.log(convo);
-          console.log(user_you);
-          console.log(convo.user_a_id == user_you._id || convo.user_b_id == user_you._id)
           if (convo.user_a_id == user_you._id || convo.user_b_id == user_you._id){
             user_you_found = true;
-            console.log("FOUND" + JSON.stringify(convo))
             this.$data.currentConvoId = convo._id;
             axios.get(API_BASE+"/api/conversations/" + convo._id + "/messages").then(resp => {
               const messages = resp.data.messages;
@@ -153,7 +144,7 @@ export default Vue.extend({
               for (var j in messages){
                 const message = messages[j];
                 const wrappedMsg = {
-                  name: message.sender_user_id == user_you._id ? user_you.name : "You",
+                  name: message.sending_user_id == user_you._id ? user_you.name : "You",
                   text: message.text,
                   time: message.time
                 }
@@ -175,7 +166,6 @@ export default Vue.extend({
                     "user_b_id": user_you._id
                 }
             }
-            console.log(newConvo);
             axios.post(API_BASE + "/api/conversations", newConvo).then(resp => {
                 if (resp){
                     console.log("NEW CONVO " + JSON.stringify(resp.data));
