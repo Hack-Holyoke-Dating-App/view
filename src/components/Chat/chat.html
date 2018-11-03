@@ -20,7 +20,7 @@
                     </li>
                     {{sentiment != null}}
                     <div v-if="sentiment != null">
-                            <li class="list-group-item alert alert-info alert"">
+                            <li class="list-group-item alert alert-info alert" @click="removeInsight">
                                     <span style="font-weight:bold">{{ sentiment }}</span>
                             </li>
                     </div>

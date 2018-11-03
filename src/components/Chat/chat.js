@@ -44,7 +44,26 @@ export default Vue.extend({
             this.$data.users = resp.data.users;
         }
     });
-    
+  },
+  created(){
+    const topic = "/users/new"
+    this.$options.sockets[topic] = (data) => {
+        console.log("topic");
+        console.log(data);
+        if (data){
+            console.log("suddenly a new user");
+            var userStr = localStorage.getItem("user");
+            this.$data.me = JSON.parse(userStr);
+            const matchURL = API_BASE + "/api/users/" + this.$data.me._id + "/matches";
+            axios.get(matchURL).then(resp => {
+                console.log("MATCHES");
+                if (resp){
+                    console.log(resp.data)
+                    this.$data.users = resp.data.users;
+                }
+            });
+        }
+    }
   },
   computed: {
     getCurrentUser: function(){
@@ -90,6 +109,10 @@ export default Vue.extend({
     }
   },
   methods: {
+    removeInsight: function(){
+        this.$data.insight = undefined;
+        console.log("hi");
+    },
     selectUser: function(index){
         const user = this.$data.users[index];
         console.log(user.name);
