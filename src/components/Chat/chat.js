@@ -28,7 +28,8 @@ export default Vue.extend({
       currentConvoId: null,
       me: {name: ""},
       id: this.$route.params.id,
-      txtInput: ''
+      txtInput: '',
+      sentiment: null,
 
     };
   },
@@ -60,14 +61,13 @@ export default Vue.extend({
         alert(convo_id)
         const self = this;
         if (convo_id){
+
             const topic = "/conversations/" + convo_id + "/new_message";
-            console.log(topic);
+            const user_me = this.$data.me;
             this.$options.sockets[topic] = (data) => {
-                console.log("NEW DATA");
-                console.log(data);
-                console.log(self.$data.messages)
                 const message = data.message;
                 const user_you = this.$data.users[this.$data.currentUserIdx];
+                
                 const wrappedMsg = {
                     name: message.sender_user_id == user_you._id ? user_you.name : "You",
                     text: message.text,
@@ -75,9 +75,15 @@ export default Vue.extend({
                 }
                 var messages = self.$data.messages;
                 messages.push(wrappedMsg);
-                console.log(messages);
-                self.$data.messages = messages;
 
+                self.$data.messages = messages;
+            }
+
+            const insight_topic = "/conversations/" + convo_id + "/user/" + user_me._id + "/new_insight";
+            console.log("insight: " + insight_topic);
+            this.$options.sockets[insight_topic] = (data) => {
+                console.log(data);
+                this.$data.sentiment = data.insight.data;
             }
         }  
     }
@@ -133,8 +139,10 @@ export default Vue.extend({
         var user_you_found = false;
         for(var i in convos){
           const convo = convos[i];
+          console.log("?????");
           console.log(convo);
           console.log(user_you);
+          console.log(convo.user_a_id == user_you._id || convo.user_b_id == user_you._id)
           if (convo.user_a_id == user_you._id || convo.user_b_id == user_you._id){
             user_you_found = true;
             console.log("FOUND" + JSON.stringify(convo))
@@ -158,7 +166,7 @@ export default Vue.extend({
               }
             });
           } 
-          break;
+          if (user_you_found) break;
         }
         if (!user_you_found){
             const newConvo = {

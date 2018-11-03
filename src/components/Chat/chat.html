@@ -18,6 +18,12 @@
                     <li v-for="msg in messages" class="list-group-item">
                         <span style="font-weight:bold">{{ msg.name }}: </span> &nbsp;{{msg.text}}
                     </li>
+                    {{sentiment != null}}
+                    <div v-if="sentiment != null">
+                            <li class="list-group-item alert alert-info alert"">
+                                    <span style="font-weight:bold">{{ sentiment }}</span>
+                            </li>
+                    </div>
                     <div class="input-group">
                         <input id="txtName"  v-model="txtInput" type="text" class="form-control" placeholder="Type your message..." 
                         @keyup.enter="addMessage" aria-describedby="basic-addon2">
