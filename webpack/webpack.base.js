@@ -26,6 +26,7 @@ module.exports = {
     extensions: ['*', '.js', '.vue', 'html'],
   },
   devServer: {
+    disableHostCheck: true,
     historyApiFallback: true,
     inline: true,
     contentBase: path.resolve(__dirname, '../src'),
