@@ -1,7 +1,13 @@
 import Vue from 'vue';
 import VeeValidate from 'vee-validate';
-// import axios from 'axios';
+import axios from 'axios';
+import { API_BASE } from '../../config/constants';
+import socketio from 'socket.io-client';
+import VueSocketIO from 'vue-socket.io';
 
+export const SocketInstance = socketio(API_BASE);
+
+Vue.use(VueSocketIO, SocketInstance)
 Vue.use(VeeValidate);
 
 // import { postsResource } from 'src/util/resources';
@@ -11,40 +17,74 @@ export default Vue.extend({
   template,
 
   data() {
-    const mock =  [
-      { name: 'Bruce Wayne', text: "Hey spiderman"},
-      { name: 'Peter Parker', text: "Hey Badman" }
-    ]
+    const mock =  []
     return {
       post: {},
       message: null,
-      users:[
-        { name: 'Bruce Wayne' },
-        { name: 'Peter Parker' }
-      ],
+      users:[],
       messages: mock,
       mock: mock,
       currentUserIdx: 0,
+      currentConvoId: null,
       me: {name: ""},
       id: this.$route.params.id,
       txtInput: ''
+
     };
   },
   mounted: function(){
     console.log("hello world");
     var userStr = localStorage.getItem("user");
     this.$data.me = JSON.parse(userStr);
+    const matchURL = API_BASE + "/api/users/" + this.$data.me._id + "/matches";
+    console.log(matchURL);
+    axios.get(matchURL).then(resp => {
+        console.log("MATCHES");
+        if (resp){
+            console.log(resp.data)
+            this.$data.users = resp.data.users;
+        }
+    });
+    
   },
   computed: {
-    // onSelectUser: function(user){
-      
-    // },
-    
     getCurrentUser: function(){
         if (this.$data.users.length > 0){
           return this.$data.users[this.$data.currentUserIdx];
         }
         return "No One :("
+    }
+  },
+  watch: {
+    currentConvoId: function(convo_id){
+        alert(convo_id)
+        const self = this;
+        if (convo_id){
+            const topic = "/conversations/" + convo_id + "/new_message";
+            console.log(topic);
+            this.$options.sockets[topic] = (data) => {
+                console.log("NEW DATA");
+                console.log(data);
+                console.log(self.$data.messages)
+                const message = data.message;
+                const user_you = this.$data.users[this.$data.currentUserIdx];
+                const wrappedMsg = {
+                    name: message.sender_user_id == user_you._id ? user_you.name : "You",
+                    text: message.text,
+                    time: message.time
+                }
+                var messages = self.$data.messages;
+                messages.push(wrappedMsg);
+                console.log(messages);
+                self.$data.messages = messages;
+
+            }
+        }  
+    }
+  },
+  sockets: {
+    connect: function(){
+        console.log("socket connected");
     }
   },
   methods: {
@@ -54,19 +94,91 @@ export default Vue.extend({
         this.$data.currentUserIdx = index;
         this.reloadChat();
     },
-    reloadChat: function(){
-      const mock =  [
-        { name: 'Bruce Wayne', text: "Hey spiderman"},
-        { name: 'Peter Parker', text: "Hey Badman" }
-      ];
-      this.$data.messages = mock;
-    },
     addMessage: function(){
-      console.log(this.txtInput);
-      var newMessages = this.$data.messages;
-      newMessages.push({name: this.$data.me.name, text: this.txtInput})
-      this.$data.messages = newMessages;
-      this.$data.txtInput="";
+        const convo_id = this.$data.currentConvoId;
+        const me = this.$data.me;
+        if (convo_id){
+            const msgWrap = {
+                message:{
+                    conversation_id: convo_id,
+                    sending_user_id: me._id,
+                    time: new Date().getTime(),
+                    text: this.txtInput
+                }
+            }
+            console.log("NEW MSG" + JSON.stringify(msgWrap));
+            axios.post(API_BASE + "/api/conversations/" + convo_id + "/messages", msgWrap).then(resp => {
+                if (resp){
+                    console.log("RECV" + JSON.stringify(resp.data.message));
+                }
+            });
+            // this.$socket.emit("/conversations/" + convo_id + "/new_message", this.txtInput)
+            // var newMessages = this.$data.messages;
+            // newMessages.push({name: this.$data.me.name, text: this.txtInput})
+            // this.$data.messages = newMessages;
+            this.$data.txtInput="";
+        }
+        
+    },
+    reloadChat: function(){
+      const user_me = this.$data.me;
+      const user_you_idx = this.$data.currentUserIdx;
+      const user_you = this.$data.users[user_you_idx];
+
+      console.log("RELOAD:\n" + JSON.stringify(user_me) + "\n" + JSON.stringify(user_you));
+      axios.get(API_BASE+"/api/users/"+user_me._id+"/conversations").then(resp => {
+        console.log("MATCHES");
+        console.log(resp.data)
+        const convos = resp.data.conversations;
+        var user_you_found = false;
+        for(var i in convos){
+          const convo = convos[i];
+          console.log(convo);
+          console.log(user_you);
+          if (convo.user_a_id == user_you._id || convo.user_b_id == user_you._id){
+            user_you_found = true;
+            console.log("FOUND" + JSON.stringify(convo))
+            this.$data.currentConvoId = convo._id;
+            axios.get(API_BASE+"/api/conversations/" + convo._id + "/messages").then(resp => {
+              const messages = resp.data.messages;
+              var wrappedMsgs = [];
+              for (var j in messages){
+                const message = messages[j];
+                const wrappedMsg = {
+                  name: message.sender_user_id == user_you._id ? user_you.name : "You",
+                  text: message.text,
+                  time: message.time
+                }
+                wrappedMsgs.push(wrappedMsg);
+              }
+              if (wrappedMsgs.length == 0){
+                this.$data.messages = [{name: "SERVER", text: "Conversation found " + convo._id}]
+              } else {
+                  this.$data.messages = wrappedMsgs;
+              }
+            });
+          } 
+          break;
+        }
+        if (!user_you_found){
+            const newConvo = {
+                "conversation": {
+                    "user_a_id": user_me._id,
+                    "user_b_id": user_you._id
+                }
+            }
+            console.log(newConvo);
+            axios.post(API_BASE + "/api/conversations", newConvo).then(resp => {
+                if (resp){
+                    console.log("NEW CONVO " + JSON.stringify(resp.data));
+                    const convo = resp.data.conversation;
+                    this.$data.currentConvoId = convo._id;
+                    this.$data.messages = [{name: "SERVER", text: "Conversation created " + convo._id}]
+                }
+            })
+        }
+        
+      });
     }
   },
 });

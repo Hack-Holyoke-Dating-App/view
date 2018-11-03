@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import VeeValidate from 'vee-validate';
+import { API_BASE } from '../../config/constants';
+import axios from 'axios';
 
 
 Vue.use(VeeValidate);
@@ -11,29 +13,54 @@ export default Vue.extend({
 
   data() {
     return {
-        memes:[
-            {image: "https://img-9gag-fun.9cache.com/photo/a5MP40O_700bwp.webp"},
-            {image: "https://img-9gag-fun.9cache.com/photo/aWYWzo3_700bwp.webp"},
-            {image: "https://img-9gag-fun.9cache.com/photo/aGZwm87_700bwp.webp"},
-        ],
+        memes:[],
         currentMemeIdx: 0,
         id: this.$route.params.id,
     };
   },
+  mounted(){
+    axios.get(API_BASE + "/api/memes").then(resp => {
+        const memes = resp.data.memes;
+        const newMemes = []
+        for(var i in memes){
+            const meme = memes[i];
+            meme.image = API_BASE + meme.image_path
+            newMemes.push(meme)
+        }
+        console.log(newMemes);
+        this.$data.memes = newMemes;
+    });
+    
+  },
   methods: {
       postMeme: function(vote){
-        console.log(vote);
         const memes = this.$data.memes;
         const N = memes.length;
-        console.log(memes);
-        console.log(N);
-        if (this.$data.currentMemeIdx >= N-1){
-            this.$router.push("/chat");
-        }
-        if (this.$data.currentMemeIdx < N){
-            this.$data.currentMemeIdx  += 1;
-        } 
-        console.log(this.$data.currentMemeIdx);
+        const idx = this.$data.currentMemeIdx ;
+        const meme = memes[idx];
+        const user = JSON.parse(localStorage.getItem("user"));
+        console.log("postMeme" + JSON.stringify(user));
+        console.log("postMeme" + JSON.stringify(meme));
+        const memeRatingWrapper = {
+            "meme_rating": {
+                "user_id": String(user._id),
+                "meme_id": String(meme._id),
+                "liked": vote
+            }
+        };
+        const url = API_BASE + "/api/memes/" + meme._id;
+        console.log(url);
+        console.log(memeRatingWrapper);
+        axios.post(url, memeRatingWrapper).then(resp => {
+            console.log(resp);
+            if (this.$data.currentMemeIdx >= N-1){
+                this.$router.push("/chat");
+            }
+            if (this.$data.currentMemeIdx < N){
+                this.$data.currentMemeIdx  += 1;
+            } 
+            console.log(this.$data.currentMemeIdx);
+        })
       },
       voteYea: function(e){
           console.log("select voteYea")

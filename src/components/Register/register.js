@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import VeeValidate from 'vee-validate';
+import { API_BASE } from '../../config/constants';
+import axios from 'axios';
 
 Vue.use(VeeValidate);
 
@@ -14,9 +16,16 @@ export default Vue.extend({
             name: "",
             age: 0,
             location: "",
+            username: "",
         },
         id: this.$route.params.id,
     };
+  },
+  mounted(){
+    console.log("???? " + API_BASE)
+    // axios.get(API_BASE + "/api/memes").then(resp => {
+    //     console.log(resp)
+    // }).catch(err => { console.log(err) });
   },
   methods: {
       register: function(e){
@@ -24,13 +33,21 @@ export default Vue.extend({
           const user = {
               name: this.$data.user.name,
               age: this.$data.user.age,
-              location: this.$data.user.location
+              location: this.$data.user.location,
+              username: this.$data.user.username
           }
-          
+
           if (e){
-            localStorage.setItem('user', JSON.stringify(user));
-            console.log(user)
-            this.$router.push("/meme");
+            const userWrapper = {"user": user};
+            axios.post(API_BASE + "/api/users", userWrapper).
+            then(resp => {
+                console.log(resp)
+                const resp_user = resp.data.user
+                localStorage.setItem('user', JSON.stringify(resp_user));
+                console.log(resp_user)
+                this.$router.push("/meme");
+            });
+            
           }
       }
   }

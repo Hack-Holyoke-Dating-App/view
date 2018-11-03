@@ -5,5 +5,6 @@ const plugins = require('./plugins');
 
 module.exports = merge(webpackBase, {
   devtool: 'inline-source-map',
-  plugins: plugins.develop
+  plugins: plugins.develop,
+  externals: ['fs'],
 });

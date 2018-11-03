@@ -7,5 +7,6 @@ module.exports = merge(webpackBase, {
   plugins: plugins.production,
   performance: {
     hints: 'warning'
-  }
+  },
+  externals: ['fs'],
 });
