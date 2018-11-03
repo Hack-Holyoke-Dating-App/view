@@ -1,0 +1,25 @@
+<div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-6">
+                <div class="card">
+                        <h5 class="card-title"><h1>Rate this meme</h1></h5>
+                        <div class="card-body">
+                            
+                            <img class="card-img-top" v-bind:src="memes[currentMemeIdx].image" alt="Card image cap">
+                            
+                            <div class="row">
+                                <div class="col-md-2 col-md-offset-6">
+                                    <a href="#" v-on:click="voteYea" class="btn btn-success">VoteYea</a>
+                                </div>
+                                <div class="col-md-2 col-md-offset-6">
+                                    <a href="#" v-on:click="voteNay" class="btn btn-danger">VoteNay</a>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>

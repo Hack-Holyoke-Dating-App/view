@@ -1,0 +1,14 @@
+<nav class="navbar fixed-top navbar-toggleable-sm navbar-inverse bg-inverse">
+    <router-link class="navbar-brand" to="/">
+      <img alt="Brand" src="~assets/images/logo.png" height="20">
+    </router-link>
+  <ul class="navbar-nav">
+    <router-link class="nav-item" tag="li" to="/chat" exact>
+      <a class="nav-link"><i class="fa fa-home"></i> Chat</a>
+    </router-link>
+    <div class="nav-item" tag="li" to="/register" exact>
+      <a class="nav-link" v-on:click="logout"><i class="fa fa-sign-out"></i>Logout</a>
+    </div>
+    
+  </ul>
+</nav>

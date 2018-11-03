@@ -1,0 +1,31 @@
+<div>     
+    <div class="container-fluid">
+        <h1>Chatting with {{ getCurrentUser.name }}</h1>
+        <div class="row">
+            <div class="col-sm-4" style="background-color:lavender;">.col-sm-4</div>
+            <div class="col-sm-8" style="background-color:lavenderblush;">.col-sm-8</div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2">
+                <ul id="example-1" class="list-group"> 
+                    <li v-for="(user,index) in users" class="btn btn-outline-primary list-group-item" v-on:click="selectUser(index)" >
+                        <div>{{ user.name }}</div>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-sm-8">
+                <ul id="example-1" class="list-group"> 
+                    <li v-for="msg in messages" class="list-group-item">
+                        <span style="font-weight:bold">{{ msg.name }}: </span> &nbsp;{{msg.text}}
+                    </li>
+                    <div class="input-group">
+                        <input id="txtName"  v-model="txtInput" type="text" class="form-control" placeholder="Type your message..." 
+                        @keyup.enter="addMessage" aria-describedby="basic-addon2">
+                        <button class="input-group-addon btn btn-primary" id="basic-addon2">Enter</button>
+                    </div>
+                </ul>
+            </div>
+           
+        </div>
+    </div>
+</div>
