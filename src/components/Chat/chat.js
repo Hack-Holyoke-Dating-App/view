@@ -82,16 +82,19 @@ export default Vue.extend({
             const user_me = this.$data.me;
             this.$options.sockets[topic] = (data) => {
                 const message = data.message;
-                const user_you = this.$data.users[this.$data.currentUserIdx];
-                const wrappedMsg = {
-                    name: message.sending_user_id == user_you._id ? user_you.name : "You",
-                    text: message.text,
-                    time: message.time
+                if (message.sending_user_id != user_me._id){
+                    const user_you = this.$data.users[this.$data.currentUserIdx];
+                    const wrappedMsg = {
+                        name: message.sending_user_id == user_you._id ? user_you.name : "You",
+                        text: message.text,
+                        time: message.time
+                    }
+                    var messages = self.$data.messages;
+                    messages.push(wrappedMsg);
+    
+                    self.$data.messages = messages;
                 }
-                var messages = self.$data.messages;
-                messages.push(wrappedMsg);
-
-                self.$data.messages = messages;
+                
             }
 
             const insight_topic = "/conversations/" + convo_id + "/user/" + user_me._id + "/new_insight";
@@ -122,16 +125,21 @@ export default Vue.extend({
     addMessage: function(){
         const convo_id = this.$data.currentConvoId;
         const me = this.$data.me;
+        console.log(convo_id)
         if (convo_id){
+            console.log("----");
+            var newMsgs = this.$data.messages;
             const msgWrap = {
                 message:{
                     conversation_id: convo_id,
                     sending_user_id: me._id,
                     time: new Date().getTime(),
-                    text: this.txtInput
+                    text: this.txtInput,
                 }
             }
             console.log("NEW MSG" + JSON.stringify(msgWrap));
+            newMsgs.push({name: "You", text: this.txtInput});
+            this.$data.messages = newMsgs;
             axios.post(API_BASE + "/api/conversations/" + convo_id + "/messages", msgWrap).then(resp => {
                 if (resp){
                     console.log("RECV" + JSON.stringify(resp.data.message));
