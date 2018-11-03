@@ -5,18 +5,16 @@
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Vue.js starter</title>
+  <title>Dank Dates</title>
 </head>
 <body>
-<div id="app">
+  <div id="app">
+    <navigation></navigation>
 
-  <navigation></navigation>
-
-  <loader v-show="isLoading"></loader>
+    <loader v-show="isLoading"></loader>
 
     <router-view></router-view>
-  
-</div>
 
+  </div>
 </body>
 </html>
